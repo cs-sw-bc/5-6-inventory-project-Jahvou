@@ -20,6 +20,12 @@ const dispatchStack = [];
 // 5. Optionally, print a success message like "Product added successfully."
 function addProduct(id, name, category, price, quantity) {
     // TODO: implement
+    if(inventory.some(productID => productID.id === id)){
+        console.log("Product with ID " + id + " already exists.");
+    }else{
+        inventory.push({id, name, category, price, quantity});
+        console.log("Product added successfully.");
+    }
 }
 
 // 2) Update Product fields
@@ -32,6 +38,16 @@ function addProduct(id, name, category, price, quantity) {
 function updateProduct(id, updates) {
     // updates object may contain: { price, category, quantity }
     // TODO: implement
+    for(let i = 0; i < inventory.length; i++){
+        if (inventory[i].id === id){
+            for(let key in updates){
+                inventory[i][key] = updates[key];
+            }
+            console.log("product updated successfully.");
+        }else{
+            console.log("product with ID " + id + " not found.");
+        }
+    }
 }
 
 // 3) Delete Product from inventory
@@ -42,6 +58,14 @@ function updateProduct(id, updates) {
 // 4. Optionally, print a success message like "Product deleted successfully."
 function deleteProduct(id) {
     // TODO: implement
+    for(let i = 0; i < inventory.length; i++){
+        if(inventory[id].id === id){
+            inventory.splice(i, 1);
+            console.log("Product deleted successfully.");
+        }else{
+            console.log("Product with ID " + id + " not found.");
+        }
+    }
 }
 
 // 4) Search Products
@@ -53,6 +77,13 @@ function deleteProduct(id) {
 // 4. If no match is found after looping through all products, return null.
 function searchByName(name) {
     // TODO: implement
+    for (let i = 0; i < inventory.length; i++){
+        if(inventory[i].name === name){
+            return inventory[i];
+        }else{
+            return null;
+        }
+    }
 }
 
 // Search by category (exact match) - return array of products
@@ -64,6 +95,14 @@ function searchByName(name) {
 // 5. After looping, return the results array (which may be empty if no matches).
 function searchByCategory(category) {
     // TODO: implement
+    const results = [];
+    for(let i = 0; i < inventory.length; i++){
+        if(inventory[i].category === category){
+            results.push(inventory[i]);
+        }else{
+            return results;
+        }
+    }
 }
 
 // 5) Sort Inventory
@@ -79,6 +118,19 @@ function searchByCategory(category) {
 // 5. Continue until the array is sorted in ascending order by price.
 function sortByPrice() {
     // TODO: implement (bubble sort or similar)
+    const length = inventory.length;
+    for(let i = 0; i < length - 1; i++){
+        for(let j = 0; j < length - i - 1; j++){
+            if(inventory[j].price > inventory[j+1].price){
+                // swap
+                const temp = inventory[j];
+                inventory[j] = inventory[j+1];
+                inventory[j+1] = temp;
+            }else{
+                continue;
+            }
+        }
+    }
 }
 
 // Sort by name A→Z
@@ -90,6 +142,18 @@ function sortByPrice() {
 // 5. Continue until the array is sorted in ascending alphabetical order by name.
 function sortByName() {
     // TODO: implement
+    const length = inventory.length;
+    for(let i = 0; i < length - 1; i++){
+        for(let j = 0; j < length - i - 1; j++){
+            if(inventory[j].name >  inventory[j+1].name){
+                const temp = inventory[j];
+                inventory[j] = inventory[j+1];
+                inventory[j+1] = temp;
+            }else{
+                continue;
+            }
+        }
+    }
 }
 
 // Sort by category A→Z
@@ -101,6 +165,18 @@ function sortByName() {
 // 5. Continue until the array is sorted in ascending alphabetical order by category.
 function sortByCategory() {
     // TODO: implement
+    const length = inventory.length;
+    for(let i = 0; i < length - 1; i++){
+        for(let j = 0; j < length - i - 1; j++){
+            if(inventory[j].category > inventory[j+1].category){
+                const temp = inventory[j];
+                inventory[j] = inventory[j+1];
+                inventory[j+1] = temp;
+            }else{
+                continue;
+            }
+        }
+    }
 }
 
 // ============================================
@@ -116,6 +192,12 @@ function sortByCategory() {
 // 3. Add (push) the order object to the end of the orderQueue array.
 // 4. Optionally, print a success message like "Order placed successfully."
 function placeOrder(orderId, productId, quantity) {
+    if(quantity <= 0){
+        console.log("invalid quantity: must be greater than 0.");
+    }else{
+        orderQueue.push({orderId, productId, quantity});
+        console.log("Order placed successfully.");
+    }
     // TODO: implement
 }
 
@@ -133,6 +215,20 @@ function placeOrder(orderId, productId, quantity) {
 // 6. If sufficient stock, reduce product.quantity by order.quantity, and push the order to dispatchStack.
 // 7. If insufficient stock, print "Insufficient stock for order {orderId}." and decide (e.g., put back to queue or discard).
 function processNextOrder() {
+    if(orderQueue.length === 0){
+        console.log("No orders to process.");
+        return;
+    }
+    const order = orderQueue.shift();
+    const product = inventory.find(item => item.id === order.productId);
+    if(!product){
+        console.log("Product not found for order " + order.orderId + ".");
+    }else if(order.quantity <= product.quantity){
+        product.quantity -= order.quantity;
+        dispatchStack.push(order);
+    }else{
+        console.log("Insufficient stock for order " + order.orderId + ".");
+    }
     // TODO: implement
 }
 
@@ -152,6 +248,17 @@ function processNextOrder() {
 // 5. Push the order back to the end of orderQueue.
 // 6. Optionally, print a success message like "Last dispatch undone."
 function undoLastDispatch() {
+    if(dispatchStack.length === 0){
+        console.log("No dispatches to undo.");
+        return;
+    }
+    const order = dispatchStack.pop();
+    const product = inventory.find(item => item.id === order.productId);
+    if(product){
+        product.quantity += order.quantity;
+        orderQueue.push(order);
+        console.log("Last dispatch undone.");
+    }
     // TODO: implement
 }
 
@@ -160,7 +267,7 @@ function undoLastDispatch() {
 // ============================================
 
 // Uncomment and use these to test your implementations
-/*
+
 addProduct(1, "Laptop", "Electronics", 999.99, 5);
 addProduct(2, "Mouse", "Electronics", 25.50, 20);
 addProduct(3, "Desk", "Furniture", 299.99, 3);
@@ -181,4 +288,4 @@ console.log("Dispatch stack:", dispatchStack);
 undoLastDispatch();
 console.log("After undo - order queue:", orderQueue);
 console.log("After undo - inventory:", inventory);
-*/
+
